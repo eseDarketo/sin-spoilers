@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Bot, User } from "lucide-react";
-
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
+import { useConversations } from "@/lib/useConversations";
 
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { messages, isLoading, send } = useConversations();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -38,16 +33,8 @@ export default function Home() {
   function onSubmit() {
     const trimmed = input.trim();
     if (!trimmed) return;
-    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed };
-    setMessages((prev) => [...prev, userMessage]);
+    send(trimmed);
     setInput("");
-    // Placeholder assistant echo to show the active state. We'll replace with API later.
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: "(assistant response goes here)" },
-      ]);
-    }, 300);
   }
 
   return (
@@ -62,7 +49,7 @@ export default function Home() {
               <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
                 <div className="mt-24 text-center">
                   <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sin Spoilers</h1>
-                  <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for</p>
+                  <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
                 </div>
               </div>
             ) : null}
@@ -97,7 +84,8 @@ export default function Home() {
               <button
                 type="button"
                 onClick={onSubmit}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90"
+                disabled={!input.trim() || isLoading}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50"
                 aria-label="Enviar"
               >
                 <ArrowUp className="h-4 w-4" />
@@ -113,7 +101,7 @@ export default function Home() {
   );
 }
 
-function MessageBubble({ role, content }: { role: "user" | "assistant"; content: string }) {
+function MessageBubble({ role, content }: { role: "user" | "assistant" | "system"; content: string }) {
   const isUser = role === "user";
   return (
     <div className="grid grid-cols-[auto_1fr] items-start gap-3 sm:gap-4">
