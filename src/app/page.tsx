@@ -42,7 +42,7 @@ export default function Home() {
       <main className="flex-1">
         {hasMessages ? (
           <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="mx-auto max-w-6xl px-4 py-3">
+            <div className="mx-auto px-4 lg:px-8 py-3">
               <div className="grid grid-cols-1 gap-2 items-center lg:grid-cols-12">
                 <div className="text-left lg:col-span-4">
                   <p className="text-md font-semibold">Sin Spoilers</p>
