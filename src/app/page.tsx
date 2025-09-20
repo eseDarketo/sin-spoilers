@@ -46,7 +46,7 @@ export default function Home() {
               <div className="grid grid-cols-1 gap-2 items-center lg:grid-cols-12">
                 <div className="text-left lg:col-span-4">
                   <p className="text-md font-semibold">Sin Spoilers</p>
-                  <p className="text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
+                  <p className="text-sm text-muted-foreground">This is not the bot you&apos;re looking for 🤚</p>
                 </div>
                 <div className="text-center lg:col-span-4 lg:col-start-5">
                   <p className="text-md font-medium">
@@ -71,7 +71,7 @@ export default function Home() {
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sin Spoilers</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
+                    <p className="mt-2 text-sm text-muted-foreground">This is not the bot you&apos;re looking for 🤚</p>
                   </div>
                 </div>
               ) : null}

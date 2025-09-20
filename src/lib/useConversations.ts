@@ -121,14 +121,14 @@ export function useConversations(options?: { systemPrompt?: string }) {
         throw new Error(data?.error || `Request failed: ${res.status}`);
       }
       if (data?.inference) setInference(data.inference);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content:
-            err?.message ||
+          content: message ||
             "Lo siento, hubo un problema al responder. Intenta de nuevo en un momento.",
         },
       ]);

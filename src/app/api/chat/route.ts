@@ -63,24 +63,25 @@ export async function POST(req: Request) {
 
     // Try Conversations API first. Types may not yet be in the SDK; use a permissive call shape.
     try {
-      const convRes: any = await (client as any).conversations?.create?.({
+      const convRes = await (client as unknown as { conversations?: { create?: (args: unknown) => Promise<unknown> } }).conversations?.create?.({
         model: "gpt-4o-mini",
         messages: [{ role: "system", content: instructions }, ...messages],
       });
 
       // Best-effort extraction across possible shapes
+      const anyRes = convRes as Record<string, unknown> | undefined;
       const outputText =
-        convRes?.output_text ??
-        convRes?.message?.content ??
-        convRes?.choices?.[0]?.message?.content ??
-        convRes?.output?.[0]?.content?.[0]?.text ??
+        (anyRes as any)?.output_text ??
+        (anyRes as any)?.message?.content ??
+        (anyRes as any)?.choices?.[0]?.message?.content ??
+        (anyRes as any)?.output?.[0]?.content?.[0]?.text ??
         "";
 
       if (typeof outputText === "string" && outputText.length > 0) {
         const inference = await extractInference(client, messages, outputText);
         return Response.json({ message: outputText, provider: "conversations", inference });
       }
-    } catch (_) {
+    } catch {
       // Ignore and try fallback
     }
 
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
               const delta = chunk.choices?.[0]?.delta?.content || "";
               if (delta) controller.enqueue(encoder.encode(delta));
             }
-          } catch (e) {
+          } catch {
             // ignore; client may abort
           } finally {
             controller.close();
