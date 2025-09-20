@@ -68,8 +68,8 @@ export default function Home() {
               className="relative h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] overflow-y-auto pt-8 pb-32 lg:col-span-12 flex justify-center"
             >
               {!hasMessages ? (
-                <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-                  <div className="mt-24 text-center">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
                     <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sin Spoilers</h1>
                     <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
                   </div>
