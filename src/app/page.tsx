@@ -5,7 +5,7 @@ import { ArrowUp } from "lucide-react";
 import { useConversations } from "@/lib/useConversations";
 
 export default function Home() {
-  const { messages, isLoading, send, inference } = useConversations();
+  const { messages, isLoading, send, inference, isStreaming } = useConversations();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -79,6 +79,9 @@ export default function Home() {
                 {messages.map((m) => (
                   <MessageBubble key={m.id} role={m.role} content={m.content} />
                 ))}
+                {isStreaming && !messages.find((m) => m.id === "__stream") ? (
+                  <MessageBubble role="assistant" content={"▍"} />
+                ) : null}
               </div>
             </div>
           </div>

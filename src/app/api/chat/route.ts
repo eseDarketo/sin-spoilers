@@ -9,6 +9,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = (body?.messages ?? []) as APIMsg[];
+    const stream = Boolean(body?.stream);
+    const inferOnly = Boolean(body?.inferOnly);
+    const lastAnswer = String(body?.lastAnswer ?? "");
 
     const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
     if (!apiKey) {
@@ -19,6 +22,12 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey });
+
+    // Inference-only mode (used after streaming completes)
+    if (inferOnly) {
+      const inference = await extractInference(client, messages, lastAnswer);
+      return Response.json({ inference });
+    }
 
     const instructions = `You are an Entertainment ChatBot. Your task is to answer user questions about movies, TV series, anime, and books while strictly following these rules:
 
@@ -72,15 +81,47 @@ export async function POST(req: Request) {
     }
 
     // Fallback to Chat Completions if Conversations is unavailable
-    const cc = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "system", content: instructions }, ...messages],
-      temperature: 0.4,
-    });
-    const text = cc.choices?.[0]?.message?.content ?? "";
-    if (text) {
-      const inference = await extractInference(client, messages, text);
-      return Response.json({ message: text, provider: "chat.completions", inference });
+    if (stream) {
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: instructions }, ...messages],
+        temperature: 0.4,
+        stream: true,
+      });
+
+      const encoder = new TextEncoder();
+      const rs = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          try {
+            for await (const chunk of completion) {
+              const delta = chunk.choices?.[0]?.delta?.content || "";
+              if (delta) controller.enqueue(encoder.encode(delta));
+            }
+          } catch (e) {
+            // ignore; client may abort
+          } finally {
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(rs, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-cache",
+        },
+      });
+    } else {
+      const cc = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: instructions }, ...messages],
+        temperature: 0.4,
+      });
+      const text = cc.choices?.[0]?.message?.content ?? "";
+      if (text) {
+        const inference = await extractInference(client, messages, text);
+        return Response.json({ message: text, provider: "chat.completions", inference });
+      }
     }
     return new Response(
       JSON.stringify({ error: "Empty response from model" }),
