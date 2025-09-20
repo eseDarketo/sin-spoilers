@@ -69,13 +69,20 @@ export async function POST(req: Request) {
       });
 
       // Best-effort extraction across possible shapes
-      const anyRes = convRes as Record<string, unknown> | undefined;
-      const outputText =
-        (anyRes as any)?.output_text ??
-        (anyRes as any)?.message?.content ??
-        (anyRes as any)?.choices?.[0]?.message?.content ??
-        (anyRes as any)?.output?.[0]?.content?.[0]?.text ??
+      type ConvMaybe = {
+        output_text?: unknown;
+        message?: { content?: unknown };
+        choices?: Array<{ message?: { content?: unknown } }>;
+        output?: Array<{ content?: Array<{ text?: unknown }> }>;
+      } | undefined;
+      const anyRes = convRes as ConvMaybe;
+      const outputTextCandidate =
+        (anyRes?.output_text as unknown) ??
+        (anyRes?.message?.content as unknown) ??
+        (anyRes?.choices?.[0]?.message?.content as unknown) ??
+        (anyRes?.output?.[0]?.content?.[0]?.text as unknown) ??
         "";
+      const outputText = typeof outputTextCandidate === "string" ? outputTextCandidate : "";
 
       if (typeof outputText === "string" && outputText.length > 0) {
         const inference = await extractInference(client, messages, outputText);
