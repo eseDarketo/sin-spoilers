@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Bot, User } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { useConversations } from "@/lib/useConversations";
 
 export default function Home() {
@@ -104,19 +104,12 @@ export default function Home() {
 function MessageBubble({ role, content }: { role: "user" | "assistant" | "system"; content: string }) {
   const isUser = role === "user";
   return (
-    <div className="grid grid-cols-[auto_1fr] items-start gap-3 sm:gap-4">
-      <div
-        className={`${
-          isUser ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-        } h-8 w-8 rounded-full flex items-center justify-center`}
-      >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-      </div>
+    <div className="sm:gap-4">
       <div
         className={`${
           isUser
-            ? "bg-secondary text-secondary-foreground rounded-2xl px-4 py-3"
-            : "bg-transparent px-0 py-0"
+            ? "ml-auto bg-secondary text-secondary-foreground rounded-2xl px-4 py-3 w-fit align-end max-w-[30rem]"
+            : "mr-auto bg-transparent px-0 py-0"
         } whitespace-pre-wrap`}
       >
         {content}
