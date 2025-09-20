@@ -4,10 +4,12 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatMessage = { id: string; role: ChatRole; content: string };
+export type Inference = { mediaType: string; title: string; position: string };
 
 export function useConversations(options?: { systemPrompt?: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [inference, setInference] = useState<Inference | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const systemMessage = useMemo(() => {
@@ -66,7 +68,7 @@ export function useConversations(options?: { systemPrompt?: string }) {
         }),
       });
 
-      const data: { message?: string; error?: string } = await res.json();
+      const data: { message?: string; error?: string; inference?: Inference } = await res.json();
       if (!res.ok) {
         throw new Error(data?.error || `Request failed: ${res.status}`);
       }
@@ -77,6 +79,7 @@ export function useConversations(options?: { systemPrompt?: string }) {
           { id: crypto.randomUUID(), role: "assistant", content: assistantText },
         ]);
       }
+      if (data?.inference) setInference(data.inference);
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
@@ -98,7 +101,7 @@ export function useConversations(options?: { systemPrompt?: string }) {
     setMessages([]);
   }, []);
 
-  return { messages, isLoading, send, clear } as const;
+  return { messages, isLoading, send, clear, inference } as const;
 }
 
 

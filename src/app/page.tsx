@@ -5,7 +5,7 @@ import { ArrowUp } from "lucide-react";
 import { useConversations } from "@/lib/useConversations";
 
 export default function Home() {
-  const { messages, isLoading, send } = useConversations();
+  const { messages, isLoading, send, inference } = useConversations();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -40,33 +40,49 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <div className="mx-auto h-full max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div
-            ref={scrollRef}
-            className="relative h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] overflow-y-auto pt-8 pb-32"
-          >
-            {!hasMessages ? (
-              <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-                <div className="mt-24 text-center">
-                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sin Spoilers</h1>
-                  <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
+        <div className="mx-auto h-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+            <div
+              ref={scrollRef}
+              className="relative h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] overflow-y-auto pt-8 pb-32"
+            >
+              {!hasMessages ? (
+                <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
+                  <div className="mt-24 text-center">
+                    <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Sin Spoilers</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="flex flex-col gap-6">
+                {messages.map((m) => (
+                  <MessageBubble key={m.id} role={m.role} content={m.content} />
+                ))}
+              </div>
+            </div>
+            <aside className="hidden lg:block sticky top-0 self-start pt-8">
+              <div className="rounded-xl border p-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Detected content</h3>
+                <div className="mt-2 text-sm">
+                  <p className="font-semibold">{inference?.title || "—"}</p>
+                  <p className="text-muted-foreground">{formatMediaType(inference?.mediaType)}</p>
+                </div>
+                <div className="mt-4 text-sm">
+                  <h4 className="font-medium">Timeline</h4>
+                  <p className="text-muted-foreground">{inference?.position || "—"}</p>
                 </div>
               </div>
-            ) : null}
-
-            <div className="flex flex-col gap-6">
-              {messages.map((m) => (
-                <MessageBubble key={m.id} role={m.role} content={m.content} />
-              ))}
-            </div>
+            </aside>
           </div>
         </div>
       </main>
 
       <div className="sticky bottom-0 w-full border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="py-3 sm:py-4">
-            <div className="flex items-end gap-2 rounded-2xl border bg-secondary/50 px-3 py-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
+              <div className="flex items-end gap-2 rounded-2xl border bg-secondary/50 px-3 py-2">
               <textarea
                 ref={textAreaRef}
                 value={input}
@@ -90,6 +106,9 @@ export default function Home() {
               >
                 <ArrowUp className="h-4 w-4" />
               </button>
+              </div>
+              <div className="hidden lg:block" />
+            </div>
             </div>
             <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
               Al enviar un mensaje aceptas que eres un geek.
@@ -97,8 +116,20 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
   );
+}
+
+function formatMediaType(t?: string) {
+  if (!t) return "—";
+  const map: Record<string, string> = {
+    movie: "Movie",
+    series: "TV Series",
+    anime: "Anime",
+    book: "Book",
+    videogame: "Videogame",
+  };
+  const key = (t || "").toLowerCase();
+  return map[key] || t;
 }
 
 function MessageBubble({ role, content }: { role: "user" | "assistant" | "system"; content: string }) {

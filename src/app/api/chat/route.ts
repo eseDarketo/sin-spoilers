@@ -3,6 +3,7 @@ import OpenAI from "openai";
 export const runtime = "nodejs";
 
 type APIMsg = { role: "user" | "assistant" | "system"; content: string };
+type Inference = { mediaType: string; title: string; position: string };
 
 export async function POST(req: Request) {
   try {
@@ -63,7 +64,8 @@ export async function POST(req: Request) {
         "";
 
       if (typeof outputText === "string" && outputText.length > 0) {
-        return Response.json({ message: outputText, provider: "conversations" });
+        const inference = await extractInference(client, messages, outputText);
+        return Response.json({ message: outputText, provider: "conversations", inference });
       }
     } catch (_) {
       // Ignore and try fallback
@@ -77,7 +79,8 @@ export async function POST(req: Request) {
     });
     const text = cc.choices?.[0]?.message?.content ?? "";
     if (text) {
-      return Response.json({ message: text, provider: "chat.completions" });
+      const inference = await extractInference(client, messages, text);
+      return Response.json({ message: text, provider: "chat.completions", inference });
     }
     return new Response(
       JSON.stringify({ error: "Empty response from model" }),
@@ -89,6 +92,38 @@ export async function POST(req: Request) {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
+  }
+}
+
+async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: string) {
+  try {
+    const sys =
+      "From the chat so far, infer the entertainment content and the user's current point in the timeline. " +
+      "Return ONLY a compact JSON object with fields: mediaType (one of: movie, series, anime, book, videogame), title, position. " +
+      "If unknown, use empty strings. Do not include extra text.";
+    const result = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: sys },
+        ...history,
+        { role: "assistant", content: lastAnswer },
+        { role: "user", content: "Return the JSON now." },
+      ],
+      temperature: 0,
+    });
+    const text = result.choices?.[0]?.message?.content ?? "";
+    try {
+      const parsed = JSON.parse(text);
+      return {
+        mediaType: String(parsed.mediaType || ""),
+        title: String(parsed.title || ""),
+        position: String(parsed.position || ""),
+      } as Inference;
+    } catch {
+      return { mediaType: "", title: "", position: "" } as Inference;
+    }
+  } catch {
+    return { mediaType: "", title: "", position: "" } as Inference;
   }
 }
 
