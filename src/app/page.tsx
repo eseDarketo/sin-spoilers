@@ -92,7 +92,7 @@ export default function Home() {
               </button>
             </div>
             <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-              Al enviar un mensaje aceptas nuestros Términos y Política de privacidad.
+              Al enviar un mensaje aceptas que eres un geek.
             </p>
           </div>
         </div>
