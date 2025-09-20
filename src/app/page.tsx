@@ -35,6 +35,11 @@ export default function Home() {
     if (!trimmed) return;
     send(trimmed);
     setInput("");
+    // Reset textarea height so it doesn't stay expanded after sending
+    const el = textAreaRef.current;
+    if (el) {
+      el.style.height = "auto";
+    }
   }
 
   return (
@@ -75,7 +80,7 @@ export default function Home() {
                   </div>
                 </div>
               ) : null}
-              <div className="flex flex-col gap-6 max-w-full lg:max-w-[60%]">
+              <div className="flex flex-col gap-6 w-full max-w-full lg:max-w-[60%]">
                 {messages.map((m) => (
                   <MessageBubble key={m.id} role={m.role} content={m.content} />
                 ))}
