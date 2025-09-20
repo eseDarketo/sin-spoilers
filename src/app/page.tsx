@@ -114,8 +114,10 @@ function MessageBubble({ role, content }: { role: "user" | "assistant" | "system
       </div>
       <div
         className={`${
-          isUser ? "bg-primary text-primary-foreground" : "bg-secondary"
-        } rounded-2xl px-4 py-3 whitespace-pre-wrap`}
+          isUser
+            ? "bg-secondary text-secondary-foreground rounded-2xl px-4 py-3"
+            : "bg-transparent px-0 py-0"
+        } whitespace-pre-wrap`}
       >
         {content}
       </div>
