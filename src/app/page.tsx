@@ -40,11 +40,32 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <div className="mx-auto h-full max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+        {hasMessages ? (
+          <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto max-w-6xl px-4 py-3">
+              <div className="grid grid-cols-1 gap-2 items-center lg:grid-cols-12">
+                <div className="text-left lg:col-span-4">
+                  <p className="text-md font-semibold">Sin Spoilers</p>
+                  <p className="text-sm text-muted-foreground">This is not the bot you're looking for 🤚</p>
+                </div>
+                <div className="text-center lg:col-span-4 lg:col-start-5">
+                  <p className="text-md font-medium">
+                    {inference?.title || "What you talkin bout willis"}
+                  </p>
+                  {inference?.position ? (
+                    <p className="text-sm text-muted-foreground">{inference.position}</p>
+                  ) : null}
+                </div>
+                <div className="hidden lg:block lg:col-span-4" />
+              </div>
+            </div>
+          </header>
+        ) : null}
+        <div className="mx-auto h-full max-w-6xl px-4 sm:px-4 lg:px-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div
               ref={scrollRef}
-              className="relative h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] overflow-y-auto pt-8 pb-32"
+              className="relative h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] overflow-y-auto pt-8 pb-32 lg:col-span-12 flex justify-center"
             >
               {!hasMessages ? (
                 <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
@@ -54,68 +75,54 @@ export default function Home() {
                   </div>
                 </div>
               ) : null}
-
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 max-w-full lg:max-w-[60%]">
                 {messages.map((m) => (
                   <MessageBubble key={m.id} role={m.role} content={m.content} />
                 ))}
               </div>
             </div>
-            <aside className="hidden lg:block sticky top-0 self-start pt-8">
-              <div className="rounded-xl border p-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Detected content</h3>
-                <div className="mt-2 text-sm">
-                  <p className="font-semibold">{inference?.title || "—"}</p>
-                  <p className="text-muted-foreground">{formatMediaType(inference?.mediaType)}</p>
-                </div>
-                <div className="mt-4 text-sm">
-                  <h4 className="font-medium">Timeline</h4>
-                  <p className="text-muted-foreground">{inference?.position || "—"}</p>
-                </div>
-              </div>
-            </aside>
           </div>
         </div>
       </main>
 
-      <div className="sticky bottom-0 w-full border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="sticky bottom-0 w-full bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto max-w-6xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
           <div className="py-3 sm:py-4">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-              <div className="flex items-end gap-2 rounded-2xl border bg-secondary/50 px-3 py-2">
-              <textarea
-                ref={textAreaRef}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  autoResizeTextArea();
-                }}
-                onInput={autoResizeTextArea}
-                onKeyDown={handleKeyDown}
-                rows={1}
-                placeholder="Escribe un mensaje..."
-                className="max-h-40 w-full resize-none bg-transparent p-2 text-base outline-none placeholder:text-muted-foreground"
-              />
+            <div className="flex justify-center">
+              <div className="flex gap-2 rounded-2xl border bg-secondary/50 px-3 py-2 lg:col-span-12 w-full max-w-full lg:max-w-[60%]">
+                <textarea
+                  ref={textAreaRef}
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    autoResizeTextArea();
+                  }}
+                  onInput={autoResizeTextArea}
+                  onKeyDown={handleKeyDown}
+                  rows={1}
+                  placeholder="Escribe un mensaje..."
+                  className="max-h-40 w-full resize-none bg-transparent p-2 text-base outline-none placeholder:text-muted-foreground"
+                />
 
-              <button
-                type="button"
-                onClick={onSubmit}
-                disabled={!input.trim() || isLoading}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50"
-                aria-label="Enviar"
-              >
-                <ArrowUp className="h-4 w-4" />
-              </button>
+                <button
+                  type="button"
+                  onClick={onSubmit}
+                  disabled={!input.trim() || isLoading}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50"
+                  aria-label="Enviar"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
               </div>
-              <div className="hidden lg:block" />
+              <div className="hidden lg:block lg:col-span-0" />
             </div>
-            </div>
-            <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-              Al enviar un mensaje aceptas que eres un geek.
-            </p>
           </div>
+          <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
+            Al enviar un mensaje aceptas que eres un geek.
+          </p>
         </div>
       </div>
+    </div>
   );
 }
 
@@ -137,11 +144,10 @@ function MessageBubble({ role, content }: { role: "user" | "assistant" | "system
   return (
     <div className="sm:gap-4">
       <div
-        className={`${
-          isUser
+        className={`${isUser
             ? "ml-auto bg-secondary text-secondary-foreground rounded-2xl px-4 py-3 w-fit align-end max-w-[30rem]"
             : "mr-auto bg-transparent px-0 py-0"
-        } whitespace-pre-wrap`}
+          } whitespace-pre-wrap`}
       >
         {content}
       </div>
