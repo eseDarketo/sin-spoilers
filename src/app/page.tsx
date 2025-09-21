@@ -5,7 +5,8 @@ import { ArrowUp } from "lucide-react";
 import { useConversations } from "@/lib/useConversations";
 
 export default function Home() {
-  const { messages, isLoading, send, inference, isStreaming } = useConversations();
+  const [dangerMode, setDangerMode] = useState(false);
+  const { messages, isLoading, send, inference, isStreaming } = useConversations({ dangerMode });
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -111,6 +112,19 @@ export default function Home() {
                   placeholder="Escribe un mensaje..."
                   className="max-h-40 w-full resize-none bg-transparent p-2 text-base outline-none placeholder:text-muted-foreground"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setDangerMode((v) => !v)}
+                  className={`${dangerMode
+                    ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white hover:opacity-90"
+                    : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-600 text-red-600 hover:bg-red-600 hover:text-white"}`}
+                  aria-pressed={dangerMode}
+                  aria-label="Toggle danger mode for videogames"
+                  title="Danger Mode (videogames only)"
+                >
+                  <span role="img" aria-label="controller">🎮</span>
+                </button>
 
                 <button
                   type="button"

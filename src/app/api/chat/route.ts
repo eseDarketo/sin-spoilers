@@ -9,6 +9,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = (body?.messages ?? []) as APIMsg[];
+    const dangerMode = Boolean(body?.dangerMode);
     const stream = Boolean(body?.stream);
     const inferOnly = Boolean(body?.inferOnly);
     const lastAnswer = String(body?.lastAnswer ?? "");
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
       return Response.json({ inference });
     }
 
-    const instructions = `You are an Entertainment ChatBot. Your mission is to help users with questions about video games, movies, TV series, anime, and books without ever revealing spoilers. Follow these rules strictly:
+    const baseInstructions = `You are an Entertainment ChatBot. Your mission is to help users with questions about video games, movies, TV series, anime, and books without ever revealing spoilers. Follow these rules strictly:
 
 1. **Absolutely zero spoilers.**  
    - Do NOT reveal or hint at any future events, plot points, character developments, relationships, or twists.  
@@ -95,11 +96,30 @@ Bot: "Up to that point, you've seen introductions to the main character and the 
 User: "Who are the main characters of the first season of Swallowed?"  
 Bot: "The protagonists are the characters who appear most often from the very beginning and drive the story forward. 🎬"`;
 
+    const dangerInstructions = `You are an Entertainment ChatBot. Danger Mode is ON. Your mission: help users with questions about entertainment. Follow these rules precisely:
+
+1) Videogame exception only:
+- If and only if the current user request is about a videogame, you MAY provide spoilers and explicit guidance to help the player get unstuck.
+- If it is unclear whether the request is about a videogame, ask a brief clarifying question first.
+
+2) All other media types (movies, TV series, anime, books):
+- Absolutely zero spoilers. Do not reveal or hint at future plot points, characters, relationships, or twists.
+
+3) When providing videogame help in Danger Mode:
+- Prefer mechanical steps, location directions, and puzzle solutions when asked.
+- Do not leak spoilers for non-videogame content.
+
+4) Be concise, friendly, and helpful.`;
+
+    // Choose instructions based on dangerMode
+    const instructions = dangerMode ? dangerInstructions : baseInstructions;
+
     // Try Conversations API first. Types may not yet be in the SDK; use a permissive call shape.
     try {
       const convRes = await (client as unknown as { conversations?: { create?: (args: unknown) => Promise<unknown> } }).conversations?.create?.({
         model: "gpt-4o-mini",
-        messages: [{ role: "system", content: instructions }, ...messages],
+        // Ensure we control the system prompt. Drop any incoming system messages.
+        messages: [{ role: "system", content: instructions }, ...messages.filter((m) => m.role !== "system")],
       });
 
       // Best-effort extraction across possible shapes
@@ -130,7 +150,7 @@ Bot: "The protagonists are the characters who appear most often from the very be
     if (stream) {
       const completion = await client.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: [{ role: "system", content: instructions }, ...messages],
+        messages: [{ role: "system", content: instructions }, ...messages.filter((m) => m.role !== "system")],
         temperature: 0.4,
         stream: true,
       });
@@ -160,7 +180,7 @@ Bot: "The protagonists are the characters who appear most often from the very be
     } else {
       const cc = await client.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: [{ role: "system", content: instructions }, ...messages],
+        messages: [{ role: "system", content: instructions }, ...messages.filter((m) => m.role !== "system")],
         temperature: 0.4,
       });
       const text = cc.choices?.[0]?.message?.content ?? "";
