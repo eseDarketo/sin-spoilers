@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { useConversations } from "@/lib/useConversations";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Home() {
   const [dangerMode, setDangerMode] = useState(false);
@@ -113,16 +114,22 @@ export default function Home() {
                   className="max-h-40 w-full resize-none bg-transparent p-2 text-base outline-none placeholder:text-muted-foreground"
                 />
 
-                <button
-                  type="button"
-                  onClick={() => setDangerMode((v) => !v)}
-                  className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-800 micro-shake"
-                  aria-pressed={dangerMode}
-                  aria-label="Toggle danger mode for videogames"
-                  title="Danger Mode (videogames only)"
-                >
-                  <span role="img" aria-label="controller">🎮</span>
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => setDangerMode((v) => !v)}
+                      className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-800 micro-shake"
+                      aria-pressed={dangerMode}
+                      aria-label="Toggle danger mode for videogames"
+                    >
+                      <span role="img" aria-label="controller">🎮</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    Videogames only: allows spoilers to help you get unstuck.
+                  </TooltipContent>
+                </Tooltip>
 
                 <button
                   type="button"
