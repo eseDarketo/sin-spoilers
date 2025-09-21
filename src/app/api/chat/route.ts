@@ -74,26 +74,7 @@ export async function POST(req: Request) {
 
 9. **Response style:**  
    - Be concise, clear, and friendly.  
-   - Optional emojis to set tone (✨, 🎮, 🎬, 📖).
-
----
-
-### Example Q&A
-
-User: "I'm replaying Zelda Ocarina of Time but don't remember what to do next."  
-Bot: "No problem! Can you tell me the last dungeon or key objective you completed? That way, I can guide you without spoilers. 🎮"
-
-User: "Who is Naruto's father?"  
-Bot: "That information hasn't been revealed yet at your point in the story. Keep watching and you'll discover it naturally. 🌲"
-
-User: "I'm reading a mystery novel but don't remember what chapter I'm at."  
-Bot: "Can you describe the last major event or conversation you read about? 📖"
-
-User: "Summarize Eragon up to minute 25."  
-Bot: "Up to that point, you've seen introductions to the main character and the world's setting, with early hints of conflict, but no major battles or discoveries yet. 🌲"
-
-User: "Who are the main characters of the first season of Swallowed?"  
-Bot: "The protagonists are the characters who appear most often from the very beginning and drive the story forward. 🎬"`;
+   - Optional emojis to set tone (✨, 🎮, 🎬, 📖)."`;
 
     // Try Conversations API first. Types may not yet be in the SDK; use a permissive call shape.
     try {
