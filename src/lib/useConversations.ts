@@ -105,7 +105,6 @@ Response flow:
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: abortRef.current.signal,
         body: JSON.stringify({
           inferOnly: true,
           lastAnswer: assistantText,

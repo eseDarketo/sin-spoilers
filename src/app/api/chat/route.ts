@@ -164,9 +164,11 @@ async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: s
         { role: "user", content: "Return the JSON now." },
       ],
       temperature: 0,
+      response_format: { type: "json_object" },
     });
     const text = result.choices?.[0]?.message?.content ?? "";
     try {
+      // Try direct parse first
       const parsed = JSON.parse(text);
       return {
         mediaType: String(parsed.mediaType || ""),
@@ -174,6 +176,20 @@ async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: s
         position: String(parsed.position || ""),
       } as Inference;
     } catch {
+      // Fallback: attempt to extract first JSON object from text
+      try {
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start !== -1 && end !== -1 && end > start) {
+          const sliced = text.slice(start, end + 1);
+          const parsed = JSON.parse(sliced);
+          return {
+            mediaType: String(parsed.mediaType || ""),
+            title: String(parsed.title || ""),
+            position: String(parsed.position || ""),
+          } as Inference;
+        }
+      } catch {}
       return { mediaType: "", title: "", position: "" } as Inference;
     }
   } catch {
