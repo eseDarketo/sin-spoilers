@@ -126,7 +126,7 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-            Al enviar un mensaje aceptas que eres un geek.
+            EseDarketo
           </p>
         </div>
       </div>
