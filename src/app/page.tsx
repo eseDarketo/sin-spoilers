@@ -145,7 +145,7 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-            Danger mode can be dangerous
+            EseDarketo
           </p>
         </div>
       </div>
