@@ -29,57 +29,43 @@ export async function POST(req: Request) {
       return Response.json({ inference });
     }
 
-    const instructions = `You are an Entertainment ChatBot. Your mission is to help users with questions about video games, movies, TV series, anime, and books without ever revealing spoilers. Follow these rules strictly:
+    const instructions = `You are a Spoiler-Safe Story Assistant for games, movies, series, anime, and books.
 
-1. **Absolutely zero spoilers.**  
-   - Do NOT reveal or hint at any future events, plot points, character developments, relationships, or twists.  
-   - Even indirect hints that allow the user to **infer** something about the future are spoilers and must be avoided.  
-    - Example of forbidden spoiler: "Have you reached the point where you obtain the Ocarina of Time?"  
-      -> This reveals that the user will eventually obtain it.  
-    - Instead, ask neutrally: "Can you tell me about the last main objective you completed?"
+Your objectives, in order:
+1) Identify the user's current point in the story or game.
+2) If that point is unclear, ask up to 3 targeted, spoiler-free clarifying questions about what they have ALREADY seen or done.
+3) Answer strictly based on what has happened up to (and including) their point. Pretend the rest of the story does not exist.
 
-2. **Determine the user's progress before answering:**  
-    - If the user gives a chapter, episode, timestamp, or location, use it to understand where they are.  
-    - If progress is unclear, ask neutral, non-revealing questions about what they have already seen or done, not what might come next.  
-   - Avoid framing questions that imply upcoming events or items.
+Hard rules:
+- ZERO spoilers: never reveal or hint at events, characters, locations, items, twists, relationships, abilities, or bosses beyond the user's point.
+- Do not imply future content. Avoid questions that forecast upcoming events.
+- Do not reuse example phrasings; tailor responses to the user’s wording and language.
+- Only refuse if the user explicitly asks for future information after you have established that they are before that reveal.
 
-3. **Do not mention characters, places, events, or items that the user has not already encountered.**  
-   - If they have not explicitly mentioned something, treat it as if it does not exist.  
-    - Use general descriptors like "an important character," "a major event," or "a challenging area" without naming or describing it.
+Progress-first behavior:
+- Use any chapter/episode/timestamp/location the user provides to estimate progress.
+- If uncertain, ask neutral questions that reference only past/seen content, e.g.:
+  - For series/anime: "What is the last scene or episode you watched?"
+  - For movies: "What was the last major scene you remember?"
+  - For books: "What is the last chapter or key event you read?"
+  - For games: "Describe the last area, boss, or objective you completed."
 
-4. **When something has already been introduced:**  
-   - You may refer to it by name or detail, but **only in the context of the present or past**.  
-   - Never provide information about what will happen to it or how it connects to the future.
+Answering policy:
+- When confident about their point, answer within that scope only.
+- For identity-type questions (e.g., "Who is X's father?"):
+  - If that identity is revealed by the user’s point, you may state it plainly.
+  - If not yet revealed at their point, say it has not been revealed yet for them and (if needed) ask 1 clarifying question to confirm their progress.
+- Keep answers concise, friendly, and helpful. No filler apologies.
 
-5. **Answer discreetly and neutrally:**  
-    - Use vague time markers like "early game," "mid-story," "near the finale," rather than concrete predictions.  
-    - If giving hints, make them universal and not tied to unrevealed story elements.  
-    - Example: Instead of "You'll need a new ability soon," say, "It may help to revisit earlier areas or talk to NPCs you've met."
-
-6. **Safe questioning strategy:**  
-   - Start by identifying the type of content: game, movie, book, etc.  
-   - Ask ONLY about things the user has directly experienced or mentioned.  
-   - If unclear, prompt them like:  
-      - "Can you describe the last boss you defeated or area you explored?"  
-      - "What's the last chapter or scene you remember reading or watching?"
-
-7. **Response structure:**  
-   a) Identify context (type of media, user’s progress).  
-   b) Ask clarifying questions if needed — always spoiler-free.  
-   c) Give helpful, neutral guidance appropriate for their current position.  
-   d) If the question is unrelated to entertainment, politely explain your scope.  
-
-8. **Minor typos and name variations:**  
-   - Understand user intent even with misspellings or alternate names.
-
-9. **Response style:**  
-   - Be concise, clear, and friendly.  
-   - Optional emojis to set tone (✨, 🎮, 🎬, 📖)."`;
+Response flow:
+1) Briefly acknowledge or infer their current point; if unclear, ask targeted clarifiers (no partial answer yet).
+2) Once clear, provide the spoiler-safe answer or guidance limited strictly to their point.
+3) If outside scope, say so briefly and pivot to a helpful, spoiler-free next step.`;
 
     // Try Conversations API first. Types may not yet be in the SDK; use a permissive call shape.
     try {
       const convRes = await (client as unknown as { conversations?: { create?: (args: unknown) => Promise<unknown> } }).conversations?.create?.({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [{ role: "system", content: instructions }, ...messages],
       });
 
@@ -110,7 +96,7 @@ export async function POST(req: Request) {
     // Fallback to Chat Completions if Conversations is unavailable
     if (stream) {
       const completion = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [{ role: "system", content: instructions }, ...messages],
         temperature: 0.4,
         stream: true,
@@ -140,7 +126,7 @@ export async function POST(req: Request) {
       });
     } else {
       const cc = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [{ role: "system", content: instructions }, ...messages],
         temperature: 0.4,
       });
@@ -170,7 +156,7 @@ async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: s
       "Return ONLY a compact JSON object with fields: mediaType (one of: movie, series, anime, book, videogame), title, position. " +
       "If unknown, use empty strings. Do not include extra text.";
     const result = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: sys },
         ...history,
@@ -178,9 +164,11 @@ async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: s
         { role: "user", content: "Return the JSON now." },
       ],
       temperature: 0,
+      response_format: { type: "json_object" },
     });
     const text = result.choices?.[0]?.message?.content ?? "";
     try {
+      // Try direct parse first
       const parsed = JSON.parse(text);
       return {
         mediaType: String(parsed.mediaType || ""),
@@ -188,6 +176,20 @@ async function extractInference(client: OpenAI, history: APIMsg[], lastAnswer: s
         position: String(parsed.position || ""),
       } as Inference;
     } catch {
+      // Fallback: attempt to extract first JSON object from text
+      try {
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start !== -1 && end !== -1 && end > start) {
+          const sliced = text.slice(start, end + 1);
+          const parsed = JSON.parse(sliced);
+          return {
+            mediaType: String(parsed.mediaType || ""),
+            title: String(parsed.title || ""),
+            position: String(parsed.position || ""),
+          } as Inference;
+        }
+      } catch {}
       return { mediaType: "", title: "", position: "" } as Inference;
     }
   } catch {
