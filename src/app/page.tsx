@@ -116,9 +116,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setDangerMode((v) => !v)}
-                  className={`${dangerMode
-                    ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white hover:opacity-90"
-                    : "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-600 text-red-600 hover:bg-red-600 hover:text-white"}`}
+                  className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-800 micro-shake"
                   aria-pressed={dangerMode}
                   aria-label="Toggle danger mode for videogames"
                   title="Danger Mode (videogames only)"
@@ -130,7 +128,7 @@ export default function Home() {
                   type="button"
                   onClick={onSubmit}
                   disabled={!input.trim() || isLoading}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50"
+                  className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50"
                   aria-label="Enviar"
                 >
                   <ArrowUp className="h-4 w-4" />
@@ -140,7 +138,7 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-            Al enviar un mensaje aceptas que eres un geek.
+            Danger mode can be dangerous
           </p>
         </div>
       </div>
